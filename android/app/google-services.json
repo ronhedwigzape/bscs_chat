@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "97362035713",
+    "firebase_url": "https://bscs-android-chat-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "bscs-android-chat",
+    "storage_bucket": "bscs-android-chat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:97362035713:android:33fe4bbda188a3140eac00",
+        "android_client_info": {
+          "package_name": "com.ronhedwigzape.bscs_chat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmes3OFjY2rZyZTj0Ir7gw4Jl7k61iISU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
