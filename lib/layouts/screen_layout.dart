@@ -23,6 +23,7 @@ class ScreenLayout extends StatefulWidget {
 class _ScreenLayoutState extends State<ScreenLayout> {
   ScreenType _currentScreen = ScreenType.chat; // Default screen
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   void _sendMessage() async {
     if (_messageController.text.isNotEmpty) {
@@ -41,6 +42,13 @@ class _ScreenLayoutState extends State<ScreenLayout> {
         _messageController.clear();
       }
     }
+    Future.delayed(Duration(milliseconds: 1000)).then((_) {
+      _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 1000),
+          curve: Curves.easeOut,
+      );
+    });
   }
 
   void _editMessage(String messageId, String currentText) async {
@@ -121,6 +129,12 @@ class _ScreenLayoutState extends State<ScreenLayout> {
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     Widget bodyContent;
 
@@ -136,22 +150,32 @@ class _ScreenLayoutState extends State<ScreenLayout> {
         break;
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 38, 13, 165),
-        foregroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-        elevation: 0.0,
-        title: const Text('BSCS Chat'),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+    return GestureDetector(
+      onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: const Color.fromARGB(255, 38, 13, 165),
+          foregroundColor: Colors.white,
+          automaticallyImplyLeading: false,
+          elevation: 0.0,
+          title: const Text('BSCS Chat'),
+          leading: Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
           ),
         ),
+        drawer: _buildDrawer(),
+        body: bodyContent,
+        floatingActionButton: _buildFloatingActionButton(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
-      drawer: _buildDrawer(),
-      body: bodyContent,
     );
   }
 
@@ -228,37 +252,163 @@ class _ScreenLayoutState extends State<ScreenLayout> {
               builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   // Show shimmer effect while waiting for data
-                  return ListView.builder(
-                    itemCount: 10, // Number of shimmer items
-                    itemBuilder: (context, index) => _buildShimmerEffect(),
-                  );
+                  return const SizedBox.shrink();
                 }
                 if (snapshot.hasData) {
-                  return ListView.builder(
-                    reverse: true, // For chat-like scrolling
-                    itemCount: snapshot.data!.docs.length,
-                    itemBuilder: (context, index) {
-                      var messageData = snapshot.data!.docs[index].data() as Map<String, dynamic>;
-                      bool isCurrentUser = messageData['userId'] == currentUserId;
-                      String profileImageUrl = messageData.containsKey('profileImage') ? messageData['profileImage'] : '';
-                      String messageText = messageData['text'] ?? 'Message error';
-
-                      // Fetch the user's name
-                      Future<String> fetchUserName(String userId) async {
-                        var userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-                        var userData = userDoc.data() as Map<String, dynamic>;
-                        return userData['profile']['firstName'] ?? 'User';
-                      }
-
-                      if (messageData.containsKey('isDeleted') && messageData['isDeleted']) {
-                        return FutureBuilder(
-                          future: fetchUserName(messageData['userId']),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.done) {
-                              String userName = snapshot.data!;
-                              if (isCurrentUser) {
-                                return GestureDetector(
-                                  child: Column(
+                  return SingleChildScrollView(
+                    controller: _scrollController,
+                    child: Column(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 25),
+                          child: CsLogo(height: 150.0),
+                        ),
+                        const Text(
+                          'BSCS Chat',
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        ListView.builder(
+                          reverse: true,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: snapshot.data!.docs.length,
+                          itemBuilder: (context, index) {
+                            var messageData = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+                            bool isCurrentUser = messageData['userId'] == currentUserId;
+                            String profileImageUrl = messageData.containsKey('profileImage') ? messageData['profileImage'] : '';
+                            String messageText = messageData['text'] ?? 'Message error';
+                        
+                            // Fetch the user's name
+                            Future<String> fetchUserName(String userId) async {
+                              var userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+                              var userData = userDoc.data() as Map<String, dynamic>;
+                              return userData['profile']['firstName'] ?? 'User';
+                            }
+                        
+                            if (messageData.containsKey('isDeleted') && messageData['isDeleted']) {
+                              return FutureBuilder(
+                                future: fetchUserName(messageData['userId']),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState == ConnectionState.done) {
+                                    String userName = snapshot.data!;
+                                    if (isCurrentUser) {
+                                      return GestureDetector(
+                                        child: Column(
+                                          crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                          children: [
+                                            Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                            Row(
+                                              mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                              children: [
+                                                if (!isCurrentUser && profileImageUrl.isNotEmpty)
+                                                  CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                                                if (!isCurrentUser && profileImageUrl.isEmpty)
+                                                  const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                                Container(
+                                                  margin: const EdgeInsets.all(8),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                                  decoration: BoxDecoration(
+                                                    color: isCurrentUser ? Colors.blue : Colors.grey[300],
+                                                    borderRadius: BorderRadius.circular(15),
+                                                  ),
+                                                  child: Text("You unsent a message.", 
+                                                  style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
+                                                ),
+                                                if (isCurrentUser && profileImageUrl.isNotEmpty)
+                                                  CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                                                if (isCurrentUser && profileImageUrl.isEmpty)
+                                                  const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                    return Column(
+                                      crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                      children: [
+                                        Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                        Row(
+                                          mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                          children: [
+                                            if (!isCurrentUser && profileImageUrl.isNotEmpty)
+                                              CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                                            if (!isCurrentUser && profileImageUrl.isEmpty)
+                                              const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                            Container(
+                                              margin: const EdgeInsets.all(8),
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                              decoration: BoxDecoration(
+                                                color: isCurrentUser ? Colors.blue : Colors.grey[300],
+                                                borderRadius: BorderRadius.circular(15),
+                                              ),
+                                              child: Text("${snapshot.data} unsent a message.", 
+                                              style: TextStyle(
+                                                color: isCurrentUser ? Colors.white : Colors.black,
+                                                fontStyle: FontStyle.italic),
+                                              ),
+                                            ),
+                                            if (isCurrentUser && profileImageUrl.isNotEmpty)
+                                              CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                                            if (isCurrentUser && profileImageUrl.isEmpty)
+                                              const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                          ],
+                                        )
+                                      ],
+                                    );
+                                  } 
+                                  else if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return _buildShimmerEffect();
+                                  }
+                                  else {
+                                    return _buildShimmerEffect();
+                                  }
+                                }
+                              );
+                            } else {
+                        
+                            return FutureBuilder(
+                              future: fetchUserName(messageData['userId']),
+                              builder: (context, AsyncSnapshot<String> nameSnapshot) {
+                                if (nameSnapshot.connectionState == ConnectionState.done) {
+                                  String userName = nameSnapshot.data!;
+                                  if (isCurrentUser) {
+                                    return GestureDetector(
+                                      onLongPress: () {
+                                        _editMessage(snapshot.data!.docs[index].id, messageData['text']);
+                                      },
+                                      child: Column(
+                                        crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                        children: [
+                                          Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                          Row(
+                                            mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                            children: [
+                                              if (!isCurrentUser && profileImageUrl.isNotEmpty)
+                                                CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                                              if (!isCurrentUser && profileImageUrl.isEmpty)
+                                                const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                              Container(
+                                                margin: const EdgeInsets.all(8),
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                                decoration: BoxDecoration(
+                                                  color: isCurrentUser ? Colors.blue : Colors.grey[300],
+                                                  borderRadius: BorderRadius.circular(15),
+                                                ),
+                                                child: Text(messageText, 
+                                                style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
+                                              ),
+                                              if (isCurrentUser && profileImageUrl.isNotEmpty)
+                                                CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                                              if (isCurrentUser && profileImageUrl.isEmpty)
+                                                const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                    );
+                                  }
+                                  return Column(
                                     crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                                     children: [
                                       Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -269,6 +419,8 @@ class _ScreenLayoutState extends State<ScreenLayout> {
                                             CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
                                           if (!isCurrentUser && profileImageUrl.isEmpty)
                                             const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                          
+                                          
                                           Container(
                                             margin: const EdgeInsets.all(8),
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -276,7 +428,7 @@ class _ScreenLayoutState extends State<ScreenLayout> {
                                               color: isCurrentUser ? Colors.blue : Colors.grey[300],
                                               borderRadius: BorderRadius.circular(15),
                                             ),
-                                            child: Text("You unsent a message.", 
+                                            child: Text(messageText, 
                                             style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
                                           ),
                                           if (isCurrentUser && profileImageUrl.isNotEmpty)
@@ -286,132 +438,18 @@ class _ScreenLayoutState extends State<ScreenLayout> {
                                         ],
                                       )
                                     ],
-                                  ),
-                                );
+                                  );
+                                } else {
+                                  return _buildShimmerEffect();
+                                }
                               }
-                              return Column(
-                                crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                children: [
-                                  Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  Row(
-                                    mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                    children: [
-                                      if (!isCurrentUser && profileImageUrl.isNotEmpty)
-                                        CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                      if (!isCurrentUser && profileImageUrl.isEmpty)
-                                        const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                      Container(
-                                        margin: const EdgeInsets.all(8),
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                        decoration: BoxDecoration(
-                                          color: isCurrentUser ? Colors.blue : Colors.grey[300],
-                                          borderRadius: BorderRadius.circular(15),
-                                        ),
-                                        child: Text("${snapshot.data} unsent a message.", 
-                                        style: TextStyle(
-                                          color: isCurrentUser ? Colors.white : Colors.black,
-                                          fontStyle: FontStyle.italic),
-                                        ),
-                                      ),
-                                      if (isCurrentUser && profileImageUrl.isNotEmpty)
-                                        CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                      if (isCurrentUser && profileImageUrl.isEmpty)
-                                        const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                    ],
-                                  )
-                                ],
-                              );
-                            } 
-                            else if (snapshot.connectionState == ConnectionState.waiting) {
-                              return _buildShimmerEffect();
-                            }
-                            else {
-                              return _buildShimmerEffect();
-                            }
-                          }
-                        );
-                      } else {
-
-                      return FutureBuilder(
-                        future: fetchUserName(messageData['userId']),
-                        builder: (context, AsyncSnapshot<String> nameSnapshot) {
-                          if (nameSnapshot.connectionState == ConnectionState.done) {
-                            String userName = nameSnapshot.data!;
-                            if (isCurrentUser) {
-                              return GestureDetector(
-                                onLongPress: () {
-                                  _editMessage(snapshot.data!.docs[index].id, messageData['text']);
-                                },
-                                child: Column(
-                                  crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                  children: [
-                                    Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    Row(
-                                      mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                      children: [
-                                        if (!isCurrentUser && profileImageUrl.isNotEmpty)
-                                          CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                        if (!isCurrentUser && profileImageUrl.isEmpty)
-                                          const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                        Container(
-                                          margin: const EdgeInsets.all(8),
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                          decoration: BoxDecoration(
-                                            color: isCurrentUser ? Colors.blue : Colors.grey[300],
-                                            borderRadius: BorderRadius.circular(15),
-                                          ),
-                                          child: Text(messageText, 
-                                          style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
-                                        ),
-                                        if (isCurrentUser && profileImageUrl.isNotEmpty)
-                                          CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                        if (isCurrentUser && profileImageUrl.isEmpty)
-                                          const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              );
-                            }
-                            return Column(
-                              crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                              children: [
-                                Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                Row(
-                                  mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                  children: [
-                                    if (!isCurrentUser && profileImageUrl.isNotEmpty)
-                                      CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                    if (!isCurrentUser && profileImageUrl.isEmpty)
-                                      const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                    
-                                    
-                                    Container(
-                                      margin: const EdgeInsets.all(8),
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: isCurrentUser ? Colors.blue : Colors.grey[300],
-                                        borderRadius: BorderRadius.circular(15),
-                                      ),
-                                      child: Text(messageText, 
-                                      style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
-                                    ),
-                                    if (isCurrentUser && profileImageUrl.isNotEmpty)
-                                      CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                    if (isCurrentUser && profileImageUrl.isEmpty)
-                                      const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                  ],
-                                )
-                              ],
                             );
-                          } else {
-                            return _buildShimmerEffect();
-                          }
-                        }
-                      );
-                      }
-
-                    },
+                            }
+                        
+                          },
+                        ),
+                      ],
+                    ),
                   );
                 
                 } else {
@@ -458,7 +496,7 @@ class _ScreenLayoutState extends State<ScreenLayout> {
               child: CsLogo(height: 150.0),
             ),
             Text(
-              'BSCS Chat Room',
+              'BSCS Chat',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
@@ -583,6 +621,25 @@ class _ScreenLayoutState extends State<ScreenLayout> {
       ),
     );
   }
+
+Widget _buildFloatingActionButton() {
+  return Padding(
+    padding: EdgeInsets.only(bottom: 50.0),
+    child: FloatingActionButton(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      onPressed: () {
+        _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: Duration(milliseconds: 1000),
+            curve: Curves.easeOut,
+        );
+      },
+      child: Icon(Icons.arrow_downward), // Your FAB icon
+    ),
+  );
+}
+
 
 }
 
