@@ -121,10 +121,35 @@ class _ScreenLayoutState extends State<ScreenLayout> {
     } 
   }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0, // Scroll to the top of the list
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _scrollToMiddle() {
+    if (_scrollController.hasClients) {
+      double middlePosition = _scrollController.position.maxScrollExtent / 2;
+      _scrollController.animateTo(
+        middlePosition,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
@@ -256,23 +281,43 @@ class _ScreenLayoutState extends State<ScreenLayout> {
               ],
             ),
           ),
-          // New button for scrolling to the bottom
-          TextButton(
-            onPressed: () {
-              _scrollController.animateTo(
-                _scrollController.position.maxScrollExtent,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
-              );
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.arrow_downward), 
-                const SizedBox(width: 10,),
-                Text("Scroll to Bottom".toUpperCase()),
-              ],
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              TextButton(
+                onPressed: () => _scrollToTop(),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.arrow_upward),
+                    SizedBox(width: 10),
+                    Text("Top"),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: () => _scrollToMiddle(),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.horizontal_rule),
+                    SizedBox(width: 10),
+                    Text("Middle"),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: () => _scrollToBottom(),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.arrow_downward),
+                    SizedBox(width: 10),
+                    Text("Bottom"),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -296,7 +341,7 @@ class _ScreenLayoutState extends State<ScreenLayout> {
             ),
             SizedBox(height: 20),
             Text(
-              'This is a chat application for BSCS students to communicate and share information. Enjoy secure and real-time messaging with your peers!',
+              'This is a chat application for BSCS students of ACLC College of Iriga to communicate and share information. Enjoy secure and real-time messaging with your peers!',
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 20),
@@ -396,27 +441,6 @@ class _ScreenLayoutState extends State<ScreenLayout> {
       ),
     );
   }
-
-
-
-Widget _buildFloatingActionButton() {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 50.0),
-    child: FloatingActionButton(
-      backgroundColor: Colors.transparent,
-      foregroundColor: Colors.grey,
-      elevation: 0,
-      onPressed: () {
-        _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 1000),
-            curve: Curves.easeOut,
-        );
-      },
-      child: const Icon(Icons.arrow_downward), // Your FAB icon
-    ),
-  );
-}
 
 
 }

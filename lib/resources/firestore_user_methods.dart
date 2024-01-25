@@ -52,40 +52,6 @@ class FireStoreUserMethods {
         .set(user.toJson(), SetOptions(merge: true));
   }
 
-  Future<Map<String, String>?> getUserDeviceTokens(String uid) async {
-    try {
-      DocumentSnapshot docSnapshot = await _usersCollection.doc(uid).get();
-
-      if (docSnapshot.exists) {
-        var data = docSnapshot.data() as Map<String, dynamic>;
-
-        if (data.containsKey('deviceTokens')) {
-          return Map<String, String>.from(data['deviceTokens']);
-        }
-      }
-      return null;
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error getting device tokens: $e');
-      }
-      return null;
-    }
-  }
-
-  // Future<void> deleteUser(String uid) async {
-  //   try {
-  //     final HttpsCallable callable = functions.httpsCallable('deleteUser');
-  //     await callable.call(<String, dynamic>{'uid': uid});
-  //     if (kDebugMode) {
-  //       print('User deleted successfully');
-  //     }
-  //   } catch (e) {
-  //     if (kDebugMode) {
-  //       print('Error deleting user: $e}');
-  //     }
-  //   }
-  // }
-
   Future<String> updateProfileImage(Uint8List? file, String currentUserUid) async {      
     String downloadUrl = '';
     if (file != null) {

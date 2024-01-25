@@ -120,6 +120,9 @@ class _ChatListState extends State<ChatList> {
                   'BSCS Chat',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
+                const Text(
+                  'A chat app for every BSCS student.'
+                ),
                 ListView.builder(
                   reverse: true,
                   shrinkWrap: true,
