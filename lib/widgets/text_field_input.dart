@@ -42,7 +42,6 @@ class TextFieldInput extends StatefulWidget {
 class _TextFieldInputState extends State<TextFieldInput> {
   bool _isPasswordVisible = false;
   bool _showPhoneNumberWarning = false;
-  bool _showPasswordWarning = false;
 
   @override
   Widget build(BuildContext context) {
@@ -89,11 +88,6 @@ class _TextFieldInputState extends State<TextFieldInput> {
                     _showPhoneNumberWarning = false;
                   });
                 }
-                if (widget.isPass && widget.isRegistration) {
-                  setState(() {
-                    _showPasswordWarning = !_isStrongPassword(value);
-                  });
-                }
               },
               decoration: InputDecoration(
                 labelText: widget.labelText,
@@ -131,24 +125,8 @@ class _TextFieldInputState extends State<TextFieldInput> {
             style: TextStyle(color: Colors.red),
           ),
         ),
-        if (_showPasswordWarning && widget.isRegistration && widget.isPass)
-        const Padding(
-          padding: EdgeInsets.only(top: 8.0),
-          child: Text(
-            'The password must be at least 6 characters long and include uppercase, lowercase letters, numbers, and symbols.',
-            style: TextStyle(color: Colors.red),
-          ),
-        ),
       ],
     );
-  }
-
-  bool _isStrongPassword(String password) {
-    bool hasUppercase = password.contains(RegExp(r'[A-Z]'));
-    bool hasLowercase = password.contains(RegExp(r'[a-z]'));
-    bool hasDigits = password.contains(RegExp(r'\d'));
-    bool hasSpecialCharacters = password.contains(RegExp(r'[\W_]'));
-    return password.length >= 6 && hasUppercase && hasLowercase && hasDigits && hasSpecialCharacters;
   }
 
   Future<void> _handleDateTimeInput(BuildContext context, TextEditingController controller, bool isDate) async {

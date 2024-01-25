@@ -11,12 +11,15 @@ class SignUpNavigation extends StatelessWidget {
     ? Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: 15,
-            ),
-            child: const Text(
-              'Don\'t have an account?',
+          GestureDetector(
+            onTap: navigateToSignup,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                vertical: 15,
+              ),
+              child: const Text(
+                'Don\'t have an account?',
+              ),
             ),
           ),
           GestureDetector(

@@ -2,6 +2,7 @@ import 'package:bscs_chat/layouts/screen_layout.dart';
 import 'package:bscs_chat/models/profile.dart' as model;
 import 'package:bscs_chat/resources/auth_methods.dart';
 import 'package:bscs_chat/screens/login_screen.dart';
+import 'package:bscs_chat/widgets/cs_logo.dart';
 import 'package:bscs_chat/widgets/text_field_input.dart';
 import 'package:flutter/material.dart';
 
@@ -16,7 +17,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _middleInitialController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _retypePasswordController = TextEditingController();
 
@@ -28,7 +28,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> signUpAsClient() async {
 
     if (_firstNameController.text.trim().isEmpty      ||
-        _middleInitialController.text.trim().isEmpty  ||
         _lastNameController.text.trim().isEmpty       ||
         _emailController.text.trim().isEmpty          ||
         _passwordController.text.trim().isEmpty       
@@ -45,7 +44,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     model.Profile profile = model.Profile(
       fullName: fullname,
       firstName: _firstNameController.text.trim(),
-      middleInitial: _middleInitialController.text.trim(),
       lastName: _lastNameController.text.trim(),
     );
 
@@ -98,7 +96,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _firstNameController.dispose();
-    _middleInitialController.dispose();
     _lastNameController.dispose();
     _retypePasswordController.dispose();
   }
@@ -130,8 +127,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: Container(),
                   ),
                   const Padding(
+                    padding: EdgeInsets.only(top: 25),
+                    child: CsLogo(height: 150.0),
+                  ),
+                  const Padding(
                     padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           'Register',
@@ -163,8 +165,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       Expanded(
                         child: TextFieldInput(
                           prefixIcon: const Icon(Icons.person),
-                          textEditingController: _middleInitialController,
-                          labelText: 'Middle Initial*',
+                          textEditingController: _lastNameController,
+                          labelText: 'Last name*',
                           textInputType: TextInputType.text
                         ),
                       ),
@@ -173,17 +175,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 10.0),
                   Row(
                     children: [
-                      // text field input for last name
-                      Expanded(
-                        child: TextFieldInput(
-                          prefixIcon: const Icon(Icons.person),
-                          textEditingController: _lastNameController,
-                          labelText: 'Last name*',
-                          textInputType: TextInputType.text
-                        ),
-                      ),
-                      const SizedBox(width: 10.0),
-                      // text field input for email
                       Expanded(
                         child: TextFieldInput(
                           prefixIcon: const Icon(Icons.email),
@@ -192,25 +183,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           textInputType: TextInputType.emailAddress
                         ),
                       )
-                    ],
-                  ),
-                  const SizedBox(height: 10.0),
-                  const Row(
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Text(
-                              '+63',
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(width: 5.0),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 10,),
@@ -239,6 +211,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           alignment: Alignment.center,
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
                           decoration: const ShapeDecoration(
+                            color: Colors.indigoAccent,
                             shape: RoundedRectangleBorder(
                               borderRadius:
                                   BorderRadius.all(Radius.circular(5.0)),
@@ -254,13 +227,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 15,
+                      GestureDetector(
+                        onTap: navigateToLogin,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 15,
+                          ),
+                          child: const Text('Already have an account?', style: TextStyle(
+                            )
+                            ,),
                         ),
-                        child: const Text('Already have an account?', style: TextStyle(
-                          )
-                          ,),
                       ),
                       GestureDetector(
                         onTap: navigateToLogin,

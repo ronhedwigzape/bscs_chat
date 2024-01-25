@@ -13,10 +13,10 @@ class CSSignInButton extends StatelessWidget {
           width: double.infinity,
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(vertical: 16.0),
-          decoration: const ShapeDecoration(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(5.0)),
-            ),
+          decoration: const BoxDecoration(
+            color: Color.fromARGB(255, 38, 13, 165),
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.all(Radius.circular(5.0)),
           ),
           child: const Text(
             'Log in',

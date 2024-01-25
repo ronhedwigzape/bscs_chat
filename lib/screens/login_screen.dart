@@ -2,6 +2,7 @@
 import 'package:bscs_chat/layouts/screen_layout.dart';
 import 'package:bscs_chat/resources/auth_methods.dart';
 import 'package:bscs_chat/screens/sign_up_screen.dart';
+import 'package:bscs_chat/widgets/cs_logo.dart';
 import 'package:bscs_chat/widgets/cs_signin_button.dart';
 import 'package:bscs_chat/widgets/login_divider.dart';
 import 'package:bscs_chat/widgets/sign_up_navigation.dart';
@@ -87,9 +88,11 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         // Handle sign-in failure
         onSignInFailure("Sign in failed");
+        print(userCredential);
       }
     } catch (e) {
       onSignInFailure(e.toString());
+
     }
 
     setState(() {
@@ -141,6 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Logo
                     const Padding(
                       padding: EdgeInsets.only(top: 25),
+                      child: CsLogo(height: 150.0),
                     ),
                     // School name and address
                     Column(
@@ -155,12 +159,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 20.0),
                     // text field input for email
-                    const Text('Log in',
-                        style: TextStyle(
-                          fontSize: 24.0,
-                          fontWeight: FontWeight.bold,
-                        )),
-                    const SizedBox(height: 24.0),
+                    const Text('Welcome to BSCS Chat!',
+                      style: TextStyle(
+                        fontSize: 24.0,
+                        fontWeight: FontWeight.bold,
+                      )),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10.0),
+                      child: Divider(thickness: 1.0),
+                    ),
                     // Text field input for email address
                     TextFieldInput(
                       prefixIcon: const Icon(Icons.email_outlined),

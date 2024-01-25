@@ -9,7 +9,7 @@ class AuthMethods {
   // Initialize Firebase Auth and Firebase Firestore instance
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(clientId: "777878936021-c9089dk3dt2nomobhobmrncjgqh7502u.apps.googleusercontent.com");
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   // Get current user details
   Future<model.User?> getCurrentUserDetails() async {
@@ -183,7 +183,6 @@ class AuthMethods {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
-      await _googleSignIn.signOut();
     } catch (e) {
       if (kDebugMode) {
         print(e.toString());
