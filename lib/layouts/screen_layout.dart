@@ -1,15 +1,17 @@
-import 'dart:typed_data';
+// ignore_for_file: use_build_context_synchronously
 import 'package:bscs_chat/models/profile.dart' as model;
 import 'package:bscs_chat/models/user.dart' as model;
 import 'package:bscs_chat/resources/auth_methods.dart';
 import 'package:bscs_chat/resources/firestore_user_methods.dart';
+import 'package:bscs_chat/widgets/chat_list.dart';
 import 'package:bscs_chat/widgets/text_field_input.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:http/http.dart' as http;
 
 import '../widgets/cs_logo.dart';
 
@@ -21,9 +23,66 @@ class ScreenLayout extends StatefulWidget {
 }
 
 class _ScreenLayoutState extends State<ScreenLayout> {
-  ScreenType _currentScreen = ScreenType.chat; // Default screen
+  ScreenType _currentScreen = ScreenType.chat; 
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  // Controllers and variables for profile screen
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  Uint8List? _profileImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  String _getAppBarTitle() {
+    switch (_currentScreen) {
+      case ScreenType.chat:
+        return 'Chat';
+      case ScreenType.about:
+        return 'About';
+      case ScreenType.profile:
+        return 'Profile';
+      default:
+        return 'BSCS Chat';
+    }
+  }
+
+  Future<void> _loadUserProfile() async {
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    String? currentUserId = auth.currentUser?.uid;
+
+    if (currentUserId != null) {
+      var userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUserId).get();
+      var userData = userDoc.data() as Map<String, dynamic>?;
+      
+      if (userData != null && userData.containsKey('profile')) {
+        var userProfile = userData['profile'];
+        _firstNameController.text = userProfile['firstName'] ?? '';
+        _lastNameController.text = userProfile['lastName'] ?? '';
+
+        // Load the profile image if available
+        if (userProfile.containsKey('profileImage') && userProfile['profileImage'] != null) {
+          _loadProfileImage(userProfile['profileImage']);
+        }
+      }
+    }
+  }
+
+  Future<void> _loadProfileImage(String imageUrl) async {
+    try {
+      final response = await http.get(Uri.parse(imageUrl));
+      if (response.statusCode == 200) {
+        setState(() {
+          _profileImage = response.bodyBytes;
+        });
+      }
+    } catch (e) {
+      // Handle errors or set a default image if needed
+    }
+  }
 
   void _sendMessage() async {
     if (_messageController.text.isNotEmpty) {
@@ -42,78 +101,12 @@ class _ScreenLayoutState extends State<ScreenLayout> {
         _messageController.clear();
       }
     }
-    Future.delayed(Duration(milliseconds: 1000)).then((_) {
+    Future.delayed(const Duration(milliseconds: 1000)).then((_) {
       _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: Duration(milliseconds: 1000),
+          duration: const Duration(milliseconds: 1000),
           curve: Curves.easeOut,
       );
-    });
-  }
-
-  void _editMessage(String messageId, String currentText) async {
-    TextEditingController editController = TextEditingController(text: currentText);
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Edit Message'),
-          content: TextField(controller: editController),
-          actions: <Widget>[
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red, backgroundColor: Colors.redAccent, // Button Background Color
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.start, // Align to left
-                      children: [
-                        Icon(Icons.delete_forever, color: Colors.black,),
-                        Text('Unsend', style: TextStyle(color: Colors.black),),
-                      ],
-                    ),
-                    onPressed: () {
-                      // Delete the message from Firestore
-                      _unsendMessage(messageId);
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10,),
-                Expanded(
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.green, backgroundColor: Colors.lightGreenAccent, // Button Background Color
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.end, // Align to right
-                      children: [
-                        Icon(Icons.update, color: Colors.black,),
-                        Text('Update', style: TextStyle(color: Colors.black),),
-                      ],
-                    ),
-                    onPressed: () {
-                      // Update the message in Firestore
-                      FirebaseFirestore.instance.collection('chats').doc(messageId).update({'text': editController.text});
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
-              ],
-            ),
-            
-          ],
-        );
-      },
-    );
-  }
-
-  void _unsendMessage(String messageId) {
-    FirebaseFirestore.instance.collection('chats').doc(messageId).update({
-      'text': '', // Empty the message text or set a placeholder
-      'isDeleted': true, // Flag to indicate the message is deleted
     });
   }
 
@@ -163,7 +156,7 @@ class _ScreenLayoutState extends State<ScreenLayout> {
           foregroundColor: Colors.white,
           automaticallyImplyLeading: false,
           elevation: 0.0,
-          title: const Text('BSCS Chat'),
+          title: Text(_getAppBarTitle()),
           leading: Builder(
             builder: (context) => IconButton(
               icon: const Icon(Icons.menu),
@@ -173,8 +166,6 @@ class _ScreenLayoutState extends State<ScreenLayout> {
         ),
         drawer: _buildDrawer(),
         body: bodyContent,
-        floatingActionButton: _buildFloatingActionButton(),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
     );
   }
@@ -240,226 +231,12 @@ class _ScreenLayoutState extends State<ScreenLayout> {
   }
 
   Widget _buildChatScreen() {
-    final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15.0),
       child: Column(
         children: [
           Expanded(
-            child: StreamBuilder(
-              stream: FirebaseFirestore.instance.collection('chats').orderBy('timestamp', descending: true).snapshots(),
-              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  // Show shimmer effect while waiting for data
-                  return const SizedBox.shrink();
-                }
-                if (snapshot.hasData) {
-                  return SingleChildScrollView(
-                    controller: _scrollController,
-                    child: Column(
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.only(top: 25),
-                          child: CsLogo(height: 150.0),
-                        ),
-                        const Text(
-                          'BSCS Chat',
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                        ListView.builder(
-                          reverse: true,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: snapshot.data!.docs.length,
-                          itemBuilder: (context, index) {
-                            var messageData = snapshot.data!.docs[index].data() as Map<String, dynamic>;
-                            bool isCurrentUser = messageData['userId'] == currentUserId;
-                            String profileImageUrl = messageData.containsKey('profileImage') ? messageData['profileImage'] : '';
-                            String messageText = messageData['text'] ?? 'Message error';
-                        
-                            // Fetch the user's name
-                            Future<String> fetchUserName(String userId) async {
-                              var userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-                              var userData = userDoc.data() as Map<String, dynamic>;
-                              return userData['profile']['firstName'] ?? 'User';
-                            }
-                        
-                            if (messageData.containsKey('isDeleted') && messageData['isDeleted']) {
-                              return FutureBuilder(
-                                future: fetchUserName(messageData['userId']),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState == ConnectionState.done) {
-                                    String userName = snapshot.data!;
-                                    if (isCurrentUser) {
-                                      return GestureDetector(
-                                        child: Column(
-                                          crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                          children: [
-                                            Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                            Row(
-                                              mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                              children: [
-                                                if (!isCurrentUser && profileImageUrl.isNotEmpty)
-                                                  CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                                if (!isCurrentUser && profileImageUrl.isEmpty)
-                                                  const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                                Container(
-                                                  margin: const EdgeInsets.all(8),
-                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                                  decoration: BoxDecoration(
-                                                    color: isCurrentUser ? Colors.blue : Colors.grey[300],
-                                                    borderRadius: BorderRadius.circular(15),
-                                                  ),
-                                                  child: Text("You unsent a message.", 
-                                                  style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
-                                                ),
-                                                if (isCurrentUser && profileImageUrl.isNotEmpty)
-                                                  CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                                if (isCurrentUser && profileImageUrl.isEmpty)
-                                                  const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                              ],
-                                            )
-                                          ],
-                                        ),
-                                      );
-                                    }
-                                    return Column(
-                                      crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                      children: [
-                                        Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        Row(
-                                          mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                          children: [
-                                            if (!isCurrentUser && profileImageUrl.isNotEmpty)
-                                              CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                            if (!isCurrentUser && profileImageUrl.isEmpty)
-                                              const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                            Container(
-                                              margin: const EdgeInsets.all(8),
-                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                              decoration: BoxDecoration(
-                                                color: isCurrentUser ? Colors.blue : Colors.grey[300],
-                                                borderRadius: BorderRadius.circular(15),
-                                              ),
-                                              child: Text("${snapshot.data} unsent a message.", 
-                                              style: TextStyle(
-                                                color: isCurrentUser ? Colors.white : Colors.black,
-                                                fontStyle: FontStyle.italic),
-                                              ),
-                                            ),
-                                            if (isCurrentUser && profileImageUrl.isNotEmpty)
-                                              CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                            if (isCurrentUser && profileImageUrl.isEmpty)
-                                              const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                          ],
-                                        )
-                                      ],
-                                    );
-                                  } 
-                                  else if (snapshot.connectionState == ConnectionState.waiting) {
-                                    return _buildShimmerEffect();
-                                  }
-                                  else {
-                                    return _buildShimmerEffect();
-                                  }
-                                }
-                              );
-                            } else {
-                        
-                            return FutureBuilder(
-                              future: fetchUserName(messageData['userId']),
-                              builder: (context, AsyncSnapshot<String> nameSnapshot) {
-                                if (nameSnapshot.connectionState == ConnectionState.done) {
-                                  String userName = nameSnapshot.data!;
-                                  if (isCurrentUser) {
-                                    return GestureDetector(
-                                      onLongPress: () {
-                                        _editMessage(snapshot.data!.docs[index].id, messageData['text']);
-                                      },
-                                      child: Column(
-                                        crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                        children: [
-                                          Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                          Row(
-                                            mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                            children: [
-                                              if (!isCurrentUser && profileImageUrl.isNotEmpty)
-                                                CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                              if (!isCurrentUser && profileImageUrl.isEmpty)
-                                                const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                              Container(
-                                                margin: const EdgeInsets.all(8),
-                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                                decoration: BoxDecoration(
-                                                  color: isCurrentUser ? Colors.blue : Colors.grey[300],
-                                                  borderRadius: BorderRadius.circular(15),
-                                                ),
-                                                child: Text(messageText, 
-                                                style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
-                                              ),
-                                              if (isCurrentUser && profileImageUrl.isNotEmpty)
-                                                CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                              if (isCurrentUser && profileImageUrl.isEmpty)
-                                                const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                            ],
-                                          )
-                                        ],
-                                      ),
-                                    );
-                                  }
-                                  return Column(
-                                    crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                    children: [
-                                      Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                      Row(
-                                        mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                        children: [
-                                          if (!isCurrentUser && profileImageUrl.isNotEmpty)
-                                            CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                          if (!isCurrentUser && profileImageUrl.isEmpty)
-                                            const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                          
-                                          
-                                          Container(
-                                            margin: const EdgeInsets.all(8),
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                            decoration: BoxDecoration(
-                                              color: isCurrentUser ? Colors.blue : Colors.grey[300],
-                                              borderRadius: BorderRadius.circular(15),
-                                            ),
-                                            child: Text(messageText, 
-                                            style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
-                                          ),
-                                          if (isCurrentUser && profileImageUrl.isNotEmpty)
-                                            CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                          if (isCurrentUser && profileImageUrl.isEmpty)
-                                            const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                        ],
-                                      )
-                                    ],
-                                  );
-                                } else {
-                                  return _buildShimmerEffect();
-                                }
-                              }
-                            );
-                            }
-                        
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                
-                } else {
-                  return ListView.builder(
-                    itemCount: 10, // Number of shimmer items
-                    itemBuilder: (context, index) => _buildShimmerEffect(),
-                  );
-                }
-              },
-            ),
+            child: ChatList(scrollController: _scrollController,),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -479,6 +256,24 @@ class _ScreenLayoutState extends State<ScreenLayout> {
               ],
             ),
           ),
+          // New button for scrolling to the bottom
+          TextButton(
+            onPressed: () {
+              _scrollController.animateTo(
+                _scrollController.position.maxScrollExtent,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.arrow_downward), 
+                const SizedBox(width: 10,),
+                Text("Scroll to Bottom".toUpperCase()),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -489,7 +284,7 @@ class _ScreenLayoutState extends State<ScreenLayout> {
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Padding(
               padding: EdgeInsets.only(top: 25),
@@ -516,9 +311,6 @@ class _ScreenLayoutState extends State<ScreenLayout> {
   }
 
   Widget _buildProfileScreen() {
-    final TextEditingController firstNameController = TextEditingController();
-    final TextEditingController lastNameController = TextEditingController();
-    Uint8List? profileImage ;
     final FireStoreUserMethods userMethods = FireStoreUserMethods();
     final ImagePicker picker = ImagePicker();
     final FirebaseAuth auth = FirebaseAuth.instance;
@@ -526,54 +318,75 @@ class _ScreenLayoutState extends State<ScreenLayout> {
     Future<void> selectImage() async {
       final XFile? selectedImage = await picker.pickImage(source: ImageSource.gallery);
       if (selectedImage != null) {
-        final Uint8List imageData = await selectedImage.readAsBytes();
         setState(() {
-          profileImage = imageData;
         });
       }
     }
 
-    Future<void> saveProfile() async {
-      String? imageUrl;
-      if (profileImage != null) {
-        imageUrl = await userMethods.updateProfileImage(profileImage, auth.currentUser!.uid);
-      }
-      
-      model.Profile updateProfile = model.Profile(
-        firstName: firstNameController.text,
-        lastName: lastNameController.text,
-        profileImage: imageUrl,
-      );
-
-      model.User updatedUser = model.User(
-        uid: auth.currentUser!.uid,
-        profile: updateProfile
-      );
-      await userMethods.updateCurrentUserData(updatedUser);
+  Future<void> saveProfile() async {
+    String? imageUrl;
+    if (_profileImage != null) {
+      imageUrl = await userMethods.updateProfileImage(_profileImage, auth.currentUser!.uid);
     }
+    
+    model.Profile updateProfile = model.Profile(
+      firstName: _firstNameController.text,
+      lastName: _lastNameController.text,
+      profileImage: imageUrl,
+    );
+
+    model.User updatedUser = model.User(
+      uid: auth.currentUser!.uid,
+      profile: updateProfile
+    );
+
+    try {
+      await userMethods.updateCurrentUserData(updatedUser);
+      // Show Snackbar upon successful save
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile saved successfully!'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      // Optionally handle errors, such as network issues
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save profile: ${e.toString()}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             GestureDetector(
               onTap: selectImage,
               child: CircleAvatar(
                 radius: 40,
-                backgroundImage: profileImage != null ? MemoryImage(profileImage!) : null,
-                child: profileImage == null ? const Icon(Icons.add_a_photo) : null,
+                backgroundImage: _profileImage != null ? MemoryImage(_profileImage!) : null,
+                child: _profileImage == null ? const Icon(Icons.add_a_photo) : null,
               ),
             ),
-            TextField(
-              controller: firstNameController,
-              decoration: const InputDecoration(hintText: 'First Name'),
+            const SizedBox(height: 30,),
+            TextFieldInput(
+              textEditingController: _firstNameController,
+              labelText: 'First Name',
+              textInputType: TextInputType.text,
             ),
-            TextField(
-              controller: lastNameController,
-              decoration: const InputDecoration(hintText: 'Last Name'),
+            const SizedBox(height: 10),
+            TextFieldInput(
+              textEditingController: _lastNameController,
+              labelText: 'Last Name',
+              textInputType: TextInputType.text,
             ),
+            const SizedBox(height: 20,),
             ElevatedButton(
               onPressed: saveProfile,
               child: const Text('Save Profile'),
@@ -584,58 +397,23 @@ class _ScreenLayoutState extends State<ScreenLayout> {
     );
   }
 
-  Widget _buildShimmerEffect() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Shimmer.fromColors(
-        baseColor: Colors.grey[300]!,
-        highlightColor: Colors.grey[100]!,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const CircleAvatar(
-              backgroundColor: Colors.white,
-              radius: 24,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                    width: double.infinity,
-                    height: 10.0,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 5),
-                  Container(
-                    width: double.infinity,
-                    height: 10.0,
-                    color: Colors.white,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
 Widget _buildFloatingActionButton() {
   return Padding(
-    padding: EdgeInsets.only(bottom: 50.0),
+    padding: const EdgeInsets.only(bottom: 50.0),
     child: FloatingActionButton(
       backgroundColor: Colors.transparent,
+      foregroundColor: Colors.grey,
       elevation: 0,
       onPressed: () {
         _scrollController.animateTo(
             _scrollController.position.maxScrollExtent,
-            duration: Duration(milliseconds: 1000),
+            duration: const Duration(milliseconds: 1000),
             curve: Curves.easeOut,
         );
       },
-      child: Icon(Icons.arrow_downward), // Your FAB icon
+      child: const Icon(Icons.arrow_downward), // Your FAB icon
     ),
   );
 }
