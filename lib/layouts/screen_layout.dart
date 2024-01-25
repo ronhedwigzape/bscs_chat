@@ -10,6 +10,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../widgets/cs_logo.dart';
+
 class ScreenLayout extends StatefulWidget {
   const ScreenLayout({Key? key}) : super(key: key);
 
@@ -150,7 +152,7 @@ class _ScreenLayoutState extends State<ScreenLayout> {
     final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     return Padding(
-      padding: const EdgeInsets.all(10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 15.0),
       child: Column(
         children: [
           Expanded(
@@ -181,7 +183,8 @@ class _ScreenLayoutState extends State<ScreenLayout> {
                               color: isCurrentUser ? Colors.blue : Colors.grey[300],
                               borderRadius: BorderRadius.circular(15),
                             ),
-                            child: Text(messageText),
+                            child: Text(messageText, 
+                            style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
                           ),
                           if (isCurrentUser && profileImageUrl.isNotEmpty)
                             CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
@@ -223,10 +226,14 @@ class _ScreenLayoutState extends State<ScreenLayout> {
   Widget _buildAboutScreen() {
     return const Center(
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.symmetric(horizontal: 20.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Padding(
+              padding: EdgeInsets.only(top: 25),
+              child: CsLogo(height: 150.0),
+            ),
             Text(
               'BSCS Chat Room',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
