@@ -86,20 +86,39 @@ class FireStoreUserMethods {
   //   }
   // }
 
-  Future<void> updateProfileImage(Uint8List? file, String currentUserUid) async {      
-    
+  Future<String> updateProfileImage(Uint8List? file, String currentUserUid) async {      
     String downloadUrl = '';
     if (file != null) {
       downloadUrl = await StorageMethods()
           .uploadImageToStorage('profileImages', file, false);
+
+      // Get a reference to the user's document in Firestore
+      DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(currentUserUid);
+
+      // Update the profileImage field in the user's document
+      await userDocRef.update({
+        'profile.profileImage': downloadUrl,
+      });
     }
 
-    // Get a reference to the user's document in Firestore
-    DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(currentUserUid);
+    return downloadUrl; // Return the URL of the uploaded image
+  }
 
-    // Update the profileImage field in the user's document
-    return userDocRef.update({
-      'profile.profileImage': downloadUrl,
+  Stream<String> getCurrentUserProfileImageStream() {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      return Stream.value(''); // Return an empty string if the user is not logged in
+    }
+
+    // Return a stream that listens to changes in the user's document
+    return _usersCollection.doc(currentUser.uid).snapshots().map((snapshot) {
+      if (snapshot.exists) {
+        var data = snapshot.data() as Map<String, dynamic>;
+        if (data.containsKey('profile') && data['profile']['profileImage'] != null) {
+          return data['profile']['profileImage'] as String;
+        }
+      }
+      return ''; // Return an empty string if there's no profile image
     });
   }
 

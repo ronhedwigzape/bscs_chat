@@ -1,6 +1,14 @@
+import 'dart:typed_data';
+import 'package:bscs_chat/models/profile.dart' as model;
+import 'package:bscs_chat/models/user.dart' as model;
 import 'package:bscs_chat/resources/auth_methods.dart';
+import 'package:bscs_chat/resources/firestore_user_methods.dart';
+import 'package:bscs_chat/widgets/text_field_input.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ScreenLayout extends StatefulWidget {
   const ScreenLayout({Key? key}) : super(key: key);
@@ -15,21 +23,31 @@ class _ScreenLayoutState extends State<ScreenLayout> {
 
   void _sendMessage() async {
     if (_messageController.text.isNotEmpty) {
-      // Send message to Firestore (example path: 'chats/messages')
-      FirebaseFirestore.instance.collection('chats').doc('messages').set({
-        'text': _messageController.text,
-        // Include other data like sender ID, timestamp, etc.
-      });
-      _messageController.clear();
+      var currentUser = FirebaseAuth.instance.currentUser;      
+      if (currentUser != null) {
+        // Assuming you have a way to get the current user's profile image URL
+        String? profileImageUrl = currentUser.photoURL;
+
+        // Send message to Firestore
+        FirebaseFirestore.instance.collection('chats').add({
+          'text': _messageController.text,
+          'userId': currentUser.uid,
+          'timestamp': FieldValue.serverTimestamp(), // Firestore server timestamp
+          'profileImage': profileImageUrl ?? '', // Handling null profile image
+        });
+        _messageController.clear();
+      }
     }
   }
-  
+
   void _signOut() async {
     try{
       await AuthMethods().signOut();
       
     } catch(e) {
-      print(e.toString());
+      if (kDebugMode) {
+        print(e.toString());
+      }
     } 
   }
 
@@ -44,7 +62,9 @@ class _ScreenLayoutState extends State<ScreenLayout> {
       case ScreenType.about:
         bodyContent = _buildAboutScreen();
         break;
-      // Add other cases for different screens
+      case ScreenType.profile:
+        bodyContent = _buildProfileScreen();
+        break;
     }
 
     return Scaffold(
@@ -53,7 +73,7 @@ class _ScreenLayoutState extends State<ScreenLayout> {
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
         elevation: 0.0,
-        title: const Text('BSCS Chat Room'),
+        title: const Text('BSCS Chat'),
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu),
@@ -94,6 +114,16 @@ class _ScreenLayoutState extends State<ScreenLayout> {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text('Profile'),
+            onTap: () {
+              setState(() {
+                _currentScreen = ScreenType.profile;
+              });
+              Navigator.pop(context); // Close the drawer
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.info),
             title: const Text('About'),
             onTap: () {
@@ -117,46 +147,76 @@ class _ScreenLayoutState extends State<ScreenLayout> {
   }
 
   Widget _buildChatScreen() {
-    return Column(
-      children: [
-        Expanded(
-          child: StreamBuilder(
-            stream: FirebaseFirestore.instance.collection('chats').snapshots(),
-            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasData) {
-                return ListView.builder(
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    var message = snapshot.data!.docs[index];
-                    return ListTile(
-                      title: Text(message['text']), // Display the message text
-                    );
-                  },
-                );
-              } else {
-                return Center(child: CircularProgressIndicator());
-              }
-            },
+    final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Column(
+        children: [
+          Expanded(
+            child: StreamBuilder(
+              stream: FirebaseFirestore.instance.collection('chats').orderBy('timestamp', descending: true).snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasData) {
+                  return ListView.builder(
+                    reverse: true, // For chat-like scrolling
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (context, index) {
+                      var messageData = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+                      bool isCurrentUser = messageData['userId'] == currentUserId;
+                      String profileImageUrl = messageData.containsKey('profileImage') ? messageData['profileImage'] : '';
+                      String messageText = messageData['text'] ?? 'Message error';
+      
+                      return Row(
+                        mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                        children: [
+                          if (!isCurrentUser && profileImageUrl.isNotEmpty)
+                            CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                          if (!isCurrentUser && profileImageUrl.isEmpty)
+                            const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                          Container(
+                            margin: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isCurrentUser ? Colors.blue : Colors.grey[300],
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Text(messageText),
+                          ),
+                          if (isCurrentUser && profileImageUrl.isNotEmpty)
+                            CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                          if (isCurrentUser && profileImageUrl.isEmpty)
+                            const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
           ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _messageController,
-                  decoration: InputDecoration(labelText: 'Type a message'),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextFieldInput(
+                    textEditingController: _messageController,
+                    labelText: 'Type your message...',
+                    textInputType: TextInputType.text,
+                  ),
                 ),
-              ),
-              IconButton(
-                icon: Icon(Icons.send),
-                onPressed: _sendMessage,
-              ),
-            ],
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: _sendMessage,
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -186,6 +246,76 @@ class _ScreenLayoutState extends State<ScreenLayout> {
       ),
     );
   }
+
+  Widget _buildProfileScreen() {
+    final TextEditingController firstNameController = TextEditingController();
+    final TextEditingController lastNameController = TextEditingController();
+    Uint8List? profileImage ;
+    final FireStoreUserMethods userMethods = FireStoreUserMethods();
+    final ImagePicker picker = ImagePicker();
+    final FirebaseAuth auth = FirebaseAuth.instance;
+
+    Future<void> selectImage() async {
+      final XFile? selectedImage = await picker.pickImage(source: ImageSource.gallery);
+      if (selectedImage != null) {
+        final Uint8List imageData = await selectedImage.readAsBytes();
+        setState(() {
+          profileImage = imageData;
+        });
+      }
+    }
+
+    Future<void> saveProfile() async {
+      String? imageUrl;
+      if (profileImage != null) {
+        imageUrl = await userMethods.updateProfileImage(profileImage, auth.currentUser!.uid);
+      }
+      
+      model.Profile updateProfile = model.Profile(
+        firstName: firstNameController.text,
+        lastName: lastNameController.text,
+        profileImage: imageUrl,
+      );
+
+      model.User updatedUser = model.User(
+        uid: auth.currentUser!.uid,
+        profile: updateProfile
+      );
+      await userMethods.updateCurrentUserData(updatedUser);
+    }
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: selectImage,
+              child: CircleAvatar(
+                radius: 40,
+                backgroundImage: profileImage != null ? MemoryImage(profileImage!) : null,
+                child: profileImage == null ? const Icon(Icons.add_a_photo) : null,
+              ),
+            ),
+            TextField(
+              controller: firstNameController,
+              decoration: const InputDecoration(hintText: 'First Name'),
+            ),
+            TextField(
+              controller: lastNameController,
+              decoration: const InputDecoration(hintText: 'Last Name'),
+            ),
+            ElevatedButton(
+              onPressed: saveProfile,
+              child: const Text('Save Profile'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }
 
-enum ScreenType { chat, about }
+enum ScreenType { chat, about, profile }

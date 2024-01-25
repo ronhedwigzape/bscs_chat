@@ -1,0 +1,1 @@
+enum ScreenType { chat, about, profile }

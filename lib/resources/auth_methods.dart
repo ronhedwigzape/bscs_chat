@@ -183,6 +183,7 @@ class AuthMethods {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
+      await _googleSignIn.signOut();
     } catch (e) {
       if (kDebugMode) {
         print(e.toString());
