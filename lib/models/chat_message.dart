@@ -1,45 +1,36 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatMessage {
-  String? messageId;
-  String userId;
-  String text;
-  DateTime timestamp;
-  String? profileImageUrl;
+  final String id;
+  final String userId;
+  final String text;
+  final DateTime timestamp;
+  final bool isEdited;
+  final bool isDeleted;
+  final String? profileImage;
 
   ChatMessage({
-    this.messageId,
+    required this.id,
     required this.userId,
     required this.text,
     required this.timestamp,
-    this.profileImageUrl,
+    this.isEdited = false,
+    this.isDeleted = false,
+    this.profileImage,
   });
 
-  // Convert a ChatMessage object to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'messageId': messageId,
-      'userId': userId,
-      'text': text,
-      'timestamp': timestamp,
-      'profileImageUrl': profileImageUrl,
-    };
-  }
+  // A factory constructor for creating a ChatMessage from a Firestore document.
+  factory ChatMessage.fromDocument(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
-  // Create a ChatMessage object from a map
-  static ChatMessage fromMap(Map<String, dynamic> map) {
     return ChatMessage(
-      messageId: map['messageId'],
-      userId: map['userId'],
-      text: map['text'],
-      timestamp: map['timestamp'].toDate(), // Assuming timestamp is a Timestamp type in Firestore
-      profileImageUrl: map['profileImageUrl'],
+      id: doc.id,
+      userId: data['userId'] as String,
+      text: data['text'] as String,
+      timestamp: (data['timestamp'] as Timestamp).toDate(),
+      isEdited: data.containsKey('isEdited') ? data['isEdited'] as bool : false,
+      isDeleted: data.containsKey('isDeleted') ? data['isDeleted'] as bool : false,
+      profileImage: data['profileImage'] as String?,
     );
-  }
-
-  // Create a ChatMessage object from a Firestore DocumentSnapshot
-  static ChatMessage fromSnapshot(DocumentSnapshot snap) {
-    var snapshot = snap.data() as Map<String, dynamic>;
-    return ChatMessage.fromMap(snapshot);
   }
 }
