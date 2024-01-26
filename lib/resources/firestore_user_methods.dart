@@ -76,9 +76,8 @@ class FireStoreUserMethods {
       return Stream.value(''); // Return an empty string if the user is not logged in
     }
 
-    // Return a stream that listens to changes in the user's document
     return _usersCollection.doc(currentUser.uid).snapshots().map((snapshot) {
-      if (snapshot.exists) {
+      if (snapshot.exists && snapshot.data() != null) {
         var data = snapshot.data() as Map<String, dynamic>;
         if (data.containsKey('profile') && data['profile']['profileImage'] != null) {
           return data['profile']['profileImage'] as String;

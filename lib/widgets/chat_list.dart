@@ -73,7 +73,10 @@ class _ChatListState extends State<ChatList> {
                     ),
                     onPressed: () {
                       // Update the message in Firestore
-                      FirebaseFirestore.instance.collection('chats').doc(messageId).update({'text': editController.text});
+                      FirebaseFirestore.instance.collection('chats').doc(messageId).update({
+                        'text': editController.text,
+                        'isEdited': true,
+                      });
                       Navigator.of(context).pop();
                     },
                   ),
@@ -140,8 +143,87 @@ class _ChatListState extends State<ChatList> {
                       var userData = userDoc.data() as Map<String, dynamic>;
                       return userData['profile']['firstName'] ?? 'User';
                     }
-                
-                    if (messageData.containsKey('isDeleted') && messageData['isDeleted']) {
+
+                    if (messageData.containsKey('isEdited') && messageData['isEdited']) {
+                        return FutureBuilder(
+                        future: fetchUserName(messageData['userId']),
+                        builder: (context, AsyncSnapshot<String> nameSnapshot) {
+                          if (nameSnapshot.connectionState == ConnectionState.done) {
+                            String userName = nameSnapshot.data!;
+                            if (isCurrentUser) {
+                              return GestureDetector(
+                                onLongPress: () {
+                                  _editMessage(snapshot.data!.docs[index].id, messageData['text']);
+                                },
+                                child: Column(
+                                  crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                      children: [
+                                        Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                      children: [
+                                        const Text('Edited', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                        Container(
+                                          margin: const EdgeInsets.all(8),
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
+                                            borderRadius: BorderRadius.circular(15),
+                                          ),
+                                          child: Text(messageText, 
+                                          style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
+                                        ),
+                                        if (isCurrentUser && profileImageUrl.isNotEmpty)
+                                          CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                                        if (isCurrentUser && profileImageUrl.isEmpty)
+                                          const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              );
+                            }
+                            return Column(
+                              crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                  children: [
+                                    Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                  children: [
+                                    if (!isCurrentUser && profileImageUrl.isNotEmpty)
+                                      CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                                    if (!isCurrentUser && profileImageUrl.isEmpty)
+                                      const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                    Container(
+                                      margin: const EdgeInsets.all(8),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(15),
+                                      ),
+                                      child: Text(messageText, 
+                                      style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
+                                    ),
+                                    const Text('Edited', style: TextStyle(fontSize: 12, color: Colors.grey)),],
+                                )
+                              ],
+                            );
+                          } else {
+                            return _buildShimmerEffect();
+                          }
+                        }
+                      );
+                    } else if (messageData.containsKey('isDeleted') && messageData['isDeleted']) {
                       return FutureBuilder(
                         future: fetchUserName(messageData['userId']),
                         builder: (context, snapshot) {
@@ -221,84 +303,83 @@ class _ChatListState extends State<ChatList> {
                         }
                       );
                     } else {
-                
-                    return FutureBuilder(
-                      future: fetchUserName(messageData['userId']),
-                      builder: (context, AsyncSnapshot<String> nameSnapshot) {
-                        if (nameSnapshot.connectionState == ConnectionState.done) {
-                          String userName = nameSnapshot.data!;
-                          if (isCurrentUser) {
-                            return GestureDetector(
-                              onLongPress: () {
-                                _editMessage(snapshot.data!.docs[index].id, messageData['text']);
-                              },
-                              child: Column(
-                                crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                children: [
-                                  Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  Row(
-                                    mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                    children: [
-                                      if (!isCurrentUser && profileImageUrl.isNotEmpty)
-                                        CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                      if (!isCurrentUser && profileImageUrl.isEmpty)
-                                        const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                      Container(
-                                        margin: const EdgeInsets.all(8),
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                        decoration: BoxDecoration(
-                                          color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
-                                          borderRadius: BorderRadius.circular(15),
+                      return FutureBuilder(
+                        future: fetchUserName(messageData['userId']),
+                        builder: (context, AsyncSnapshot<String> nameSnapshot) {
+                          if (nameSnapshot.connectionState == ConnectionState.done) {
+                            String userName = nameSnapshot.data!;
+                            if (isCurrentUser) {
+                              return GestureDetector(
+                                onLongPress: () {
+                                  _editMessage(snapshot.data!.docs[index].id, messageData['text']);
+                                },
+                                child: Column(
+                                  crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                  children: [
+                                    Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    Row(
+                                      mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                      children: [
+                                        if (!isCurrentUser && profileImageUrl.isNotEmpty)
+                                          CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                                        if (!isCurrentUser && profileImageUrl.isEmpty)
+                                          const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                        Container(
+                                          margin: const EdgeInsets.all(8),
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
+                                            borderRadius: BorderRadius.circular(15),
+                                          ),
+                                          child: Text(messageText, 
+                                          style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
                                         ),
-                                        child: Text(messageText, 
-                                        style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
+                                        if (isCurrentUser && profileImageUrl.isNotEmpty)
+                                          CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                                        if (isCurrentUser && profileImageUrl.isEmpty)
+                                          const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              );
+                            }
+                            return Column(
+                              crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                              children: [
+                                Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                Row(
+                                  mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                  children: [
+                                    if (!isCurrentUser && profileImageUrl.isNotEmpty)
+                                      CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                                    if (!isCurrentUser && profileImageUrl.isEmpty)
+                                      const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                    
+                                    
+                                    Container(
+                                      margin: const EdgeInsets.all(8),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(15),
                                       ),
-                                      if (isCurrentUser && profileImageUrl.isNotEmpty)
-                                        CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                      if (isCurrentUser && profileImageUrl.isEmpty)
-                                        const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            );
-                          }
-                          return Column(
-                            crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                            children: [
-                              Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              Row(
-                                mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                children: [
-                                  if (!isCurrentUser && profileImageUrl.isNotEmpty)
-                                    CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                  if (!isCurrentUser && profileImageUrl.isEmpty)
-                                    const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                  
-                                  
-                                  Container(
-                                    margin: const EdgeInsets.all(8),
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(15),
+                                      child: Text(messageText, 
+                                      style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
                                     ),
-                                    child: Text(messageText, 
-                                    style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
-                                  ),
-                                  if (isCurrentUser && profileImageUrl.isNotEmpty)
-                                    CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
-                                  if (isCurrentUser && profileImageUrl.isEmpty)
-                                    const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                ],
-                              )
-                            ],
-                          );
-                        } else {
-                          return _buildShimmerEffect();
+                                    if (isCurrentUser && profileImageUrl.isNotEmpty)
+                                      CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
+                                    if (isCurrentUser && profileImageUrl.isEmpty)
+                                      const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                  ],
+                                )
+                              ],
+                            );
+                          } else {
+                            return _buildShimmerEffect();
+                          }
                         }
-                      }
-                    );
+                      );
                     }
                 
                   },
