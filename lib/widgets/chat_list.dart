@@ -169,15 +169,17 @@ class _ChatListState extends State<ChatList> {
                                       mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
                                       children: [
                                         const Text('Edited', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                                        Container(
-                                          margin: const EdgeInsets.all(8),
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                          decoration: BoxDecoration(
-                                            color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
-                                            borderRadius: BorderRadius.circular(15),
+                                        Flexible(
+                                          child: Container(
+                                            margin: const EdgeInsets.all(8),
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                            decoration: BoxDecoration(
+                                              color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
+                                              borderRadius: BorderRadius.circular(15),
+                                            ),
+                                            child: Text(messageText, 
+                                            style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
                                           ),
-                                          child: Text(messageText, 
-                                          style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
                                         ),
                                         if (isCurrentUser && profileImageUrl.isNotEmpty)
                                           CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
@@ -217,15 +219,17 @@ class _ChatListState extends State<ChatList> {
                                             style: const TextStyle(fontSize: 18.0),
                                           ),
                                         ),
-                                    Container(
-                                      margin: const EdgeInsets.all(8),
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
-                                        borderRadius: BorderRadius.circular(15),
+                                    Flexible(
+                                      child: Container(
+                                        margin: const EdgeInsets.all(8),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
+                                          borderRadius: BorderRadius.circular(15),
+                                        ),
+                                        child: Text(messageText, 
+                                        style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
                                       ),
-                                      child: Text(messageText, 
-                                      style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
                                     ),
                                     const Text('Edited', style: TextStyle(fontSize: 12, color: Colors.grey)),],
                                 )
@@ -367,15 +371,17 @@ class _ChatListState extends State<ChatList> {
                                             style: const TextStyle(fontSize: 18.0),
                                           ),
                                         ),
-                                        Container(
-                                          margin: const EdgeInsets.all(8),
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                          decoration: BoxDecoration(
-                                            color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
-                                            borderRadius: BorderRadius.circular(15),
+                                        Flexible(
+                                          child: Container(
+                                            margin: const EdgeInsets.all(8),
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                            decoration: BoxDecoration(
+                                              color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
+                                              borderRadius: BorderRadius.circular(15),
+                                            ),
+                                            child: Text(messageText, 
+                                            style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
                                           ),
-                                          child: Text(messageText, 
-                                          style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
                                         ),
                                         if (isCurrentUser && profileImageUrl.isNotEmpty)
                                           CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
@@ -410,15 +416,17 @@ class _ChatListState extends State<ChatList> {
                                             style: const TextStyle(fontSize: 18.0),
                                           ),
                                         ),
-                                    Container(
-                                      margin: const EdgeInsets.all(8),
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
-                                        borderRadius: BorderRadius.circular(15),
+                                    Flexible(
+                                      child: Container(
+                                        margin: const EdgeInsets.all(8),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: isCurrentUser ? const Color.fromARGB(255, 38, 13, 165) : Colors.grey[300],
+                                          borderRadius: BorderRadius.circular(15),
+                                        ),
+                                        child: Text(messageText, 
+                                        style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
                                       ),
-                                      child: Text(messageText, 
-                                      style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black),),
                                     ),
                                     if (isCurrentUser && profileImageUrl.isNotEmpty)
                                       CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
