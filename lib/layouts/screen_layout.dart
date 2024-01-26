@@ -4,6 +4,7 @@ import 'package:bscs_chat/models/profile.dart' as model;
 import 'package:bscs_chat/models/user.dart' as model;
 import 'package:bscs_chat/resources/auth_methods.dart';
 import 'package:bscs_chat/resources/firestore_user_methods.dart';
+import 'package:bscs_chat/screens/login_screen.dart';
 import 'package:bscs_chat/widgets/chat_list.dart';
 import 'package:bscs_chat/widgets/text_field_input.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -186,7 +187,10 @@ void _showInstructionsDialog() {
   void _signOut() async {
     try{
       await AuthMethods().signOut();
-      
+      Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => const LoginScreen()
+        )
+      );
     } catch(e) {
       if (kDebugMode) {
         print(e.toString());
