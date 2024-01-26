@@ -1,5 +1,19 @@
 # BSCS Chat - Final Project for Mobile Application Development
 
+## App Screenshots
+
+<div align="center">
+<span>
+    <img src="assets/screenshots/Screenshot_2024-01-26-12-39-09-11_c3f784702840413e64899e10a7759c6a.jpg" style="height: 300px;">
+</span>
+<span>
+    <img src="assets/screenshots/Screenshot_2024-01-26-12-39-22-17_c3f784702840413e64899e10a7759c6a.jpg" style="height: 300px;">
+</span>
+<span>
+    <img src="assets/screenshots/Screenshot_2024-01-26-14-25-24-32_c3f784702840413e64899e10a7759c6a.jpg" style="height: 300px;">
+</span>
+</div>
+
 ## Introduction
 
 Welcome to my final project for the Mobile Application Development course at ACLC College of Iriga! This README provides comprehensive instructions on how to build, locate, and install the debug version of our Android mobile application. Designed for user-friendliness, this guide is suitable for individuals with varying levels of technical knowledge in mobile app development.
@@ -28,10 +42,6 @@ Before starting, make sure you have:
 The debug APK can be found in the `build\app\outputs\flutter-apk` directory of your project folder. Navigate here using a file explorer.
 
 Alternatively, you can directly download the APK and install the app on your phone by enabling 'Unknown Sources' for app installation. The APK is available at: [My Drive](https://drive.google.com/file/d/1vY34rLhJOWCJU8JyxwhuFMG6ZZj4nnTn/view?usp=drive_link).
-
-### Screenshots of the Project Directory
-
-(Insert screenshots of your project directory here, particularly showing where the APK file is located, to assist users in finding it.)
 
 ## Installing the App on an Android Device
 
