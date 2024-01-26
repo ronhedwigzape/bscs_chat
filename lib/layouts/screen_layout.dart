@@ -56,30 +56,60 @@ class _ScreenLayoutState extends State<ScreenLayout> {
   }
 
   // This method will be triggered when the user pulls down the chat list
-Future<void> _refreshChatMessages() async {
-  try {
-    // Fetch the latest chat messages from Firestore
-    QuerySnapshot chatSnapshot = await FirebaseFirestore.instance
-        .collection('chats')
-        .orderBy('timestamp', descending: true)
-        .get();
+  Future<void> _refreshChatMessages() async {
+    try {
+      // Fetch the latest chat messages from Firestore
+      QuerySnapshot chatSnapshot = await FirebaseFirestore.instance
+          .collection('chats')
+          .orderBy('timestamp', descending: true)
+          .get();
 
-    // Assuming ChatMessage is a class that represents a chat message
-    // Convert each document to a ChatMessage and add to the list
-    List<ChatMessage> newMessages = chatSnapshot.docs.map((doc) {
-      return ChatMessage.fromDocument(doc); // Replace with actual conversion logic
-    }).toList();
+      // Assuming ChatMessage is a class that represents a chat message
+      // Convert each document to a ChatMessage and add to the list
+      List<ChatMessage> newMessages = chatSnapshot.docs.map((doc) {
+        return ChatMessage.fromDocument(doc); // Replace with actual conversion logic
+      }).toList();
 
-    // Update the state with the new messages
-    setState(() {
-      _chatMessages = newMessages;
-    });
-  } catch (error) {
-    // Handle any errors here
-    print("Error fetching chat messages: $error");
+      // Update the state with the new messages
+      setState(() {
+        _chatMessages = newMessages;
+      });
+    } catch (error) {
+      // Handle any errors here
+      print("Error fetching chat messages: $error");
+    }
   }
-}
 
+void _showInstructionsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('How to use this chat app?'),
+          content: const SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Use this app like a messenger.'),
+                SizedBox(height: 8),
+                Text('Features:'),
+                Text('- Pull down to refresh'),
+                Text('- Edit and unsend message'),
+                Text('- Scroll to bottom, middle, and top'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Future<void> _loadUserProfile() async {
     final FirebaseAuth auth = FirebaseAuth.instance;
@@ -231,6 +261,12 @@ Future<void> _refreshChatMessages() async {
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.help_outline),
+              onPressed: _showInstructionsDialog,
+            ),
+          ],
         ),
         drawer: _buildDrawer(),
         body: bodyContent,
