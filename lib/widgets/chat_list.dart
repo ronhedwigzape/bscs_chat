@@ -94,6 +94,7 @@ class _ChatListState extends State<ChatList> {
     FirebaseFirestore.instance.collection('chats').doc(messageId).update({
       'text': '', // Empty the message text or set a placeholder
       'isDeleted': true, // Flag to indicate the message is deleted
+      'isEdited': false,
     });
   }
 
@@ -181,7 +182,13 @@ class _ChatListState extends State<ChatList> {
                                         if (isCurrentUser && profileImageUrl.isNotEmpty)
                                           CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
                                         if (isCurrentUser && profileImageUrl.isEmpty)
-                                          const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                        CircleAvatar(
+                                          backgroundColor: Colors.grey,
+                                          child: Text(
+                                            userName.isNotEmpty ? userName[0] : '?',
+                                            style: const TextStyle(fontSize: 18.0),
+                                          ),
+                                        ),
                                       ],
                                     )
                                   ],
@@ -203,7 +210,13 @@ class _ChatListState extends State<ChatList> {
                                     if (!isCurrentUser && profileImageUrl.isNotEmpty)
                                       CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
                                     if (!isCurrentUser && profileImageUrl.isEmpty)
-                                      const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                      CircleAvatar(
+                                          backgroundColor: Colors.grey,
+                                          child: Text(
+                                            userName.isNotEmpty ? userName[0] : '?',
+                                            style: const TextStyle(fontSize: 18.0),
+                                          ),
+                                        ),
                                     Container(
                                       margin: const EdgeInsets.all(8),
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -241,7 +254,13 @@ class _ChatListState extends State<ChatList> {
                                         if (!isCurrentUser && profileImageUrl.isNotEmpty)
                                           CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
                                         if (!isCurrentUser && profileImageUrl.isEmpty)
-                                          const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                          CircleAvatar(
+                                            backgroundColor: Colors.grey,
+                                            child: Text(
+                                              userName.isNotEmpty ? userName[0] : '?',
+                                              style: const TextStyle(fontSize: 18.0),
+                                            ),
+                                          ),
                                         Container(
                                           margin: const EdgeInsets.all(8),
                                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -255,7 +274,13 @@ class _ChatListState extends State<ChatList> {
                                         if (isCurrentUser && profileImageUrl.isNotEmpty)
                                           CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
                                         if (isCurrentUser && profileImageUrl.isEmpty)
-                                          const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                          CircleAvatar(
+                                          backgroundColor: Colors.grey,
+                                          child: Text(
+                                            userName.isNotEmpty ? userName[0] : '?',
+                                            style: const TextStyle(fontSize: 18.0),
+                                          ),
+                                        ),
                                       ],
                                     )
                                   ],
@@ -272,7 +297,13 @@ class _ChatListState extends State<ChatList> {
                                     if (!isCurrentUser && profileImageUrl.isNotEmpty)
                                       CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
                                     if (!isCurrentUser && profileImageUrl.isEmpty)
-                                      const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                      CircleAvatar(
+                                          backgroundColor: Colors.grey,
+                                          child: Text(
+                                            userName.isNotEmpty ? userName[0] : '?',
+                                            style: const TextStyle(fontSize: 18.0),
+                                          ),
+                                        ),
                                     Container(
                                       margin: const EdgeInsets.all(8),
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -288,7 +319,13 @@ class _ChatListState extends State<ChatList> {
                                     if (isCurrentUser && profileImageUrl.isNotEmpty)
                                       CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
                                     if (isCurrentUser && profileImageUrl.isEmpty)
-                                      const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                      CircleAvatar(
+                                          backgroundColor: Colors.grey,
+                                          child: Text(
+                                            userName.isNotEmpty ? userName[0] : '?',
+                                            style: const TextStyle(fontSize: 18.0),
+                                          ),
+                                        ),
                                   ],
                                 )
                               ],
@@ -323,7 +360,13 @@ class _ChatListState extends State<ChatList> {
                                         if (!isCurrentUser && profileImageUrl.isNotEmpty)
                                           CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
                                         if (!isCurrentUser && profileImageUrl.isEmpty)
-                                          const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                          CircleAvatar(
+                                          backgroundColor: Colors.grey,
+                                          child: Text(
+                                            userName.isNotEmpty ? userName[0] : '?',
+                                            style: const TextStyle(fontSize: 18.0),
+                                          ),
+                                        ),
                                         Container(
                                           margin: const EdgeInsets.all(8),
                                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -337,7 +380,13 @@ class _ChatListState extends State<ChatList> {
                                         if (isCurrentUser && profileImageUrl.isNotEmpty)
                                           CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
                                         if (isCurrentUser && profileImageUrl.isEmpty)
-                                          const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                          CircleAvatar(
+                                          backgroundColor: Colors.grey,
+                                          child: Text(
+                                            userName.isNotEmpty ? userName[0] : '?',
+                                            style: const TextStyle(fontSize: 18.0),
+                                          ),
+                                        ),
                                       ],
                                     )
                                   ],
@@ -354,9 +403,13 @@ class _ChatListState extends State<ChatList> {
                                     if (!isCurrentUser && profileImageUrl.isNotEmpty)
                                       CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
                                     if (!isCurrentUser && profileImageUrl.isEmpty)
-                                      const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
-                                    
-                                    
+                                      CircleAvatar(
+                                          backgroundColor: Colors.grey,
+                                          child: Text(
+                                            userName.isNotEmpty ? userName[0] : '?',
+                                            style: const TextStyle(fontSize: 18.0),
+                                          ),
+                                        ),
                                     Container(
                                       margin: const EdgeInsets.all(8),
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -370,7 +423,13 @@ class _ChatListState extends State<ChatList> {
                                     if (isCurrentUser && profileImageUrl.isNotEmpty)
                                       CircleAvatar(backgroundImage: NetworkImage(profileImageUrl)),
                                     if (isCurrentUser && profileImageUrl.isEmpty)
-                                      const CircleAvatar(backgroundImage: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png')),
+                                      CircleAvatar(
+                                        backgroundColor: Colors.grey,
+                                        child: Text(
+                                          userName.isNotEmpty ? userName[0] : '?',
+                                          style: const TextStyle(fontSize: 18.0),
+                                        ),
+                                      ),
                                   ],
                                 )
                               ],
