@@ -1,4 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
+import 'package:bscs_chat/models/chat_message.dart';
 import 'package:bscs_chat/models/profile.dart' as model;
 import 'package:bscs_chat/models/user.dart' as model;
 import 'package:bscs_chat/resources/auth_methods.dart';
@@ -32,7 +33,8 @@ class _ScreenLayoutState extends State<ScreenLayout> {
   Uint8List? _profileImage;
   String _currentUserName = '';
   String _currentUserEmail = '';
-
+  // ignore: unused_field
+  List<ChatMessage> _chatMessages = [];
 
   @override
   void initState() {
@@ -52,6 +54,32 @@ class _ScreenLayoutState extends State<ScreenLayout> {
         return 'BSCS Chat';
     }
   }
+
+  // This method will be triggered when the user pulls down the chat list
+Future<void> _refreshChatMessages() async {
+  try {
+    // Fetch the latest chat messages from Firestore
+    QuerySnapshot chatSnapshot = await FirebaseFirestore.instance
+        .collection('chats')
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    // Assuming ChatMessage is a class that represents a chat message
+    // Convert each document to a ChatMessage and add to the list
+    List<ChatMessage> newMessages = chatSnapshot.docs.map((doc) {
+      return ChatMessage.fromDocument(doc); // Replace with actual conversion logic
+    }).toList();
+
+    // Update the state with the new messages
+    setState(() {
+      _chatMessages = newMessages;
+    });
+  } catch (error) {
+    // Handle any errors here
+    print("Error fetching chat messages: $error");
+  }
+}
+
 
   Future<void> _loadUserProfile() async {
     final FirebaseAuth auth = FirebaseAuth.instance;
@@ -283,7 +311,10 @@ class _ScreenLayoutState extends State<ScreenLayout> {
       child: Column(
         children: [
           Expanded(
-            child: ChatList(scrollController: _scrollController,),
+            child: RefreshIndicator(
+            onRefresh: _refreshChatMessages,
+            child: ChatList(scrollController: _scrollController),
+          ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -391,15 +422,9 @@ class _ScreenLayoutState extends State<ScreenLayout> {
     }
 
   Future<void> saveProfile() async {
-    String? imageUrl;
-    if (_profileImage != null) {
-      imageUrl = await userMethods.updateProfileImage(_profileImage, auth.currentUser!.uid);
-    }
-    
     model.Profile updateProfile = model.Profile(
       firstName: _firstNameController.text,
       lastName: _lastNameController.text,
-      profileImage: imageUrl,
     );
 
     model.User updatedUser = model.User(
@@ -410,12 +435,10 @@ class _ScreenLayoutState extends State<ScreenLayout> {
     try {
       await userMethods.updateCurrentUserData(updatedUser);
       // Show Snackbar upon successful save
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile saved successfully!'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Profile updated successfully!'),
+      duration: Duration(seconds: 3),
+    ));
     } catch (e) {
       // Optionally handle errors, such as network issues
       ScaffoldMessenger.of(context).showSnackBar(
