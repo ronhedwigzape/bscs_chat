@@ -27,7 +27,7 @@ Before starting, make sure you have:
 
 The debug APK can be found in the `build\app\outputs\flutter-apk` directory of your project folder. Navigate here using a file explorer.
 
-Alternatively, you can directly download the APK and install the app on your phone by enabling 'Unknown Sources' for app installation. The APK is available at: [My Drive](https://drive.google.com/file/d/1vY34rLhJOWCJU8JyxwhuFMG6ZZj4nnTn/view?usp=sharing).
+Alternatively, you can directly download the APK and install the app on your phone by enabling 'Unknown Sources' for app installation. The APK is available at: [My Drive](https://drive.google.com/file/d/1vY34rLhJOWCJU8JyxwhuFMG6ZZj4nnTn/view?usp=drive_link).
 
 ### Screenshots of the Project Directory
 
