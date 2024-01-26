@@ -16,7 +16,7 @@ class LoginDivider extends StatelessWidget {
             endIndent: 20,
           ),
         ),
-        Text('or', style: TextStyle(color: Colors.grey),),
+        Text('or continue with', style: TextStyle(color: Colors.grey),),
         Expanded(
           child: Divider(
             color: Colors.grey,

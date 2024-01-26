@@ -204,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     SignInButton(
                       Buttons.Google,
-                      text: _isLoading ? "Loading..." : "Sign up with Google",
+                      text: _isLoading ? "Loading..." : "Sign in with Google",
                       onPressed: () async {
                         if (!_isLoading) {
                           setState(() {

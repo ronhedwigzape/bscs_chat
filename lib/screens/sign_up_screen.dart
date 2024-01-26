@@ -1,4 +1,3 @@
-import 'package:bscs_chat/layouts/screen_layout.dart';
 import 'package:bscs_chat/models/profile.dart' as model;
 import 'package:bscs_chat/resources/auth_methods.dart';
 import 'package:bscs_chat/screens/login_screen.dart';
@@ -75,13 +74,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void onSignupSuccess() {
     Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const ScreenLayout()));
+        MaterialPageRoute(builder: (context) => const LoginScreen()));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Signed up successfully!. You may now login.'),
+      duration: Duration(seconds: 3),
+    ));
   }
 
   void onSignupFailure(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 3),
     ));
   }
 
