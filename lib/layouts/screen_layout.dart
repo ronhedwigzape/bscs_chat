@@ -30,6 +30,9 @@ class _ScreenLayoutState extends State<ScreenLayout> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   Uint8List? _profileImage;
+  String _currentUserName = '';
+  String _currentUserEmail = '';
+
 
   @override
   void initState() {
@@ -53,20 +56,28 @@ class _ScreenLayoutState extends State<ScreenLayout> {
   Future<void> _loadUserProfile() async {
     final FirebaseAuth auth = FirebaseAuth.instance;
     String? currentUserId = auth.currentUser?.uid;
+    _currentUserEmail = auth.currentUser?.email ?? '';
 
     if (currentUserId != null) {
       var userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUserId).get();
       var userData = userDoc.data() as Map<String, dynamic>?;
-      
+
       if (userData != null && userData.containsKey('profile')) {
         var userProfile = userData['profile'];
         _firstNameController.text = userProfile['firstName'] ?? '';
         _lastNameController.text = userProfile['lastName'] ?? '';
 
-        // Load the profile image if available
-        if (userProfile.containsKey('profileImage') && userProfile['profileImage'] != null) {
-          _loadProfileImage(userProfile['profileImage']);
+        // Set full name for display in drawer
+        _currentUserName = '${userProfile['firstName'] ?? ''} ${userProfile['lastName'] ?? ''}';
+
+        // Check and load profile image
+        String? profileImageUrl = userProfile['profileImage'];
+        if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
+          await _loadProfileImage(profileImageUrl);
         }
+
+        print('Current user name: $_currentUserName'); // Debug print
+        setState(() {}); // Update UI
       }
     }
   }
@@ -78,9 +89,13 @@ class _ScreenLayoutState extends State<ScreenLayout> {
         setState(() {
           _profileImage = response.bodyBytes;
         });
+        print('Profile image loaded');
+      } else {
+        print('Failed to load image: Status code ${response.statusCode}');
       }
     } catch (e) {
-      // Handle errors or set a default image if needed
+      print('Error loading profile image: $e');
+      // Optionally set a default image in case of error
     }
   }
 
@@ -101,10 +116,10 @@ class _ScreenLayoutState extends State<ScreenLayout> {
         _messageController.clear();
       }
     }
-    Future.delayed(const Duration(milliseconds: 1000)).then((_) {
+    Future.delayed(const Duration(milliseconds: 2000)).then((_) {
       _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 1000),
+          duration: const Duration(milliseconds: 500),
           curve: Curves.easeOut,
       );
     });
@@ -200,17 +215,24 @@ class _ScreenLayoutState extends State<ScreenLayout> {
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          const DrawerHeader(
-            decoration: BoxDecoration(
-              color: Color.fromARGB(255, 38, 13, 165),
+          UserAccountsDrawerHeader( 
+            decoration: const BoxDecoration(
+              color: const Color.fromARGB(255, 38, 13, 165),
             ),
-            child: Text(
-              'Menu',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-              ),
-            ),
+            accountName: Text(_currentUserName),
+            accountEmail: Text(_currentUserEmail),
+            currentAccountPicture: _profileImage != null 
+              ? CircleAvatar(
+                  backgroundColor: Colors.white,
+                  backgroundImage: MemoryImage(_profileImage!),
+                )
+              : CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Text(
+                    _currentUserName.isNotEmpty ? _currentUserName[0] : '?',
+                    style: const TextStyle(fontSize: 24.0),
+                  ),
+                ),
           ),
           ListTile(
             leading: const Icon(Icons.chat),
@@ -442,6 +464,11 @@ class _ScreenLayoutState extends State<ScreenLayout> {
     );
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
 }
 
