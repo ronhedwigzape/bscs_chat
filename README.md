@@ -4,19 +4,19 @@
 
 <div align="center">
 <span>
-    <img src="assets/screenshots/Screenshot_2024-01-26-12-39-09-11_c3f784702840413e64899e10a7759c6a.jpg" style="height: 300px;">
+    <img src="assets/screenshots/Screenshot_2024-01-26-12-39-09-11_c3f784702840413e64899e10a7759c6a.jpg" style="height: 600px;">
 </span>
 <span>
-    <img src="assets/screenshots/Screenshot_2024-01-26-12-39-22-17_c3f784702840413e64899e10a7759c6a.jpg" style="height: 300px;">
+    <img src="assets/screenshots/Screenshot_2024-01-26-12-39-22-17_c3f784702840413e64899e10a7759c6a.jpg" style="height: 600px;">
 </span>
 <span>
-    <img src="assets/screenshots/Screenshot_2024-01-26-14-25-24-32_c3f784702840413e64899e10a7759c6a.jpg" style="height: 300px;">
+    <img src="assets/screenshots/Screenshot_2024-01-26-14-25-24-32_c3f784702840413e64899e10a7759c6a.jpg" style="height: 600px;">
 </span>
 </div>
 
 ## Introduction
 
-Welcome to my final project for the Mobile Application Development course at ACLC College of Iriga! This README provides comprehensive instructions on how to build, locate, and install the debug version of our Android mobile application. Designed for user-friendliness, this guide is suitable for individuals with varying levels of technical knowledge in mobile app development.
+Welcome to my final project for the Mobile Application Development course at [ACLC College of Iriga](https://www.facebook.com/ACLCCollegeIRIGA)! This README provides comprehensive instructions on how to build, locate, and install the debug version of our Android mobile application. Designed for user-friendliness, this guide is suitable for individuals with varying levels of technical knowledge in mobile app development.
 
 ## Prerequisites
 
