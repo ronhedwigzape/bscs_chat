@@ -4,13 +4,13 @@
 
 <div align="center">
 <span>
-    <img src="assets/screenshots/Screenshot_2024-01-26-12-39-09-11_c3f784702840413e64899e10a7759c6a.jpg" style="height: 600px;">
+    <img src="assets/screenshots/Screenshot_2024-01-26-12-39-09-11_c3f784702840413e64899e10a7759c6a.jpg" style="height: 550px;">
 </span>
 <span>
-    <img src="assets/screenshots/Screenshot_2024-01-26-12-39-22-17_c3f784702840413e64899e10a7759c6a.jpg" style="height: 600px;">
+    <img src="assets/screenshots/Screenshot_2024-01-26-12-39-22-17_c3f784702840413e64899e10a7759c6a.jpg" style="height: 550px;">
 </span>
 <span>
-    <img src="assets/screenshots/Screenshot_2024-01-26-14-25-24-32_c3f784702840413e64899e10a7759c6a.jpg" style="height: 600px;">
+    <img src="assets/screenshots/Screenshot_2024-01-26-14-25-24-32_c3f784702840413e64899e10a7759c6a.jpg" style="height: 550px;">
 </span>
 </div>
 
