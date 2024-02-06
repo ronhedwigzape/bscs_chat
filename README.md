@@ -1,6 +1,6 @@
-# BSCS Chat - Final Project for Mobile Application Development
+# <img src="assets/app_icon.png" style="height: 30px"> BSCS Chat - A realtime Flutter app chat
 
-## App Screenshots
+## 📷 App Screenshots
 
 <div align="center">
 <span>
@@ -14,18 +14,19 @@
 </span>
 </div>
 
-## Introduction
+<br>
 
-Welcome to my final project for the Mobile Application Development course at [ACLC College of Iriga](https://www.facebook.com/ACLCCollegeIRIGA)! This README provides comprehensive instructions on how to build, locate, and install the debug version of our Android mobile application. Designed for user-friendliness, this guide is suitable for individuals with varying levels of technical knowledge in mobile app development.
+> This README provides comprehensive instructions on how to build, locate, and install the debug version of our Android mobile application. Designed for user-friendliness, this guide is suitable for individuals with varying levels of technical knowledge in mobile app development.
 
 ## Prerequisites
 
+> [!IMPORTANT]
 Before starting, make sure you have:
 - Flutter SDK installed
 - Android Studio or Visual Studio Code with Flutter and Dart plugins
 - An Android device or emulator for testing
 
-## Building the App
+## 📱 Building the App
 
 1. **Clone the Repository**: Start by cloning the project repository to your local machine.
 
@@ -37,13 +38,13 @@ Before starting, make sure you have:
 
 5. **APK Build Location**: The debug APK will be located at: `√ Built build\app\outputs\flutter-apk\app-debug.apk`.
 
-## Locating the Built App
+## 🔎 Locating the Built App
 
 The debug APK can be found in the `build\app\outputs\flutter-apk` directory of your project folder. Navigate here using a file explorer.
 
 Alternatively, you can directly download the APK and install the app on your phone by enabling 'Unknown Sources' for app installation. The APK is available at: [My Drive](https://drive.google.com/file/d/1vY34rLhJOWCJU8JyxwhuFMG6ZZj4nnTn/view?usp=drive_link).
 
-## Installing the App on an Android Device
+## 🔨 Installing the App on an Android Device
 
 1. **Enable Developer Mode**: On your Android device, go to `Settings > About phone` and tap `Build number` 7 times to enable developer mode. Then, activate `USB debugging` in `Settings > Developer options`.
 
@@ -55,10 +56,9 @@ Alternatively, you can directly download the APK and install the app on your pho
 
 5. **Open the App**: Once installed, the app will appear in your device's app drawer.
 
-## Troubleshooting
+## 🛠 Troubleshooting
 
 If you encounter any issues, consult the Flutter [official documentation](https://flutter.dev/docs) or reach out to me at my GitHub profile: [@ronhedwigzape](https://github.com/ronhedwigzape).
 
-## Conclusion
-
-This guide is designed to assist you in successfully building and installing my Flutter application for the Mobile Application Development course at ACLC College of Iriga. Thank you for your interest in my project!
+> [!NOTE]
+This guide is designed to assist you in successfully building and installing my Flutter application. Thank you for your interest in my project!
